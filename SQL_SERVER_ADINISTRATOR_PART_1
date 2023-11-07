@@ -1,5 +1,17 @@
 Select @@Version
 
+-- ORDER OF COURSES 
+   -- •	Ultimate Guide in SQL DBA (FREE)
+   -- •	Learn T-SQL
+   -- •	SQL Admin part 1 •	SQL Admin part 2 •	SQL Admin part 3 •	SSRS part 1
+   -- •	SSIS
+   -- •	SSRS part 2
+   -- •	Mock Program
+   -- •	Learn T-SQL Advanced •	Upgrade and Migration
+   -- •	SQL Admin new features
+   -- •	SQL Performance tuning part 1
+   -- •	SQL Server Performance tuning part 2 •	Getting a job
+   -- •	BONUS VIDEO AT THE END OF COURSE
 /*
 
 Purpose of SP2:
@@ -2786,11 +2798,11 @@ GO
 
 -- SETTING UP SQL DATABASE MAIL VIA WIZARD:
 
--- GUI METHOD => Open Management - Right click on Database Mail - Configure Database Mail - Next - Set up Database Mail by performing the following - 1. Create a new mail, 2. Specify profile security, 3. Configure system parameters - Next - Profile Name - SQL - Click ADD to add the account - Account Name - SQL - Email address - worldwid01@gmail.com - Server name - smtp.gmail.com - Change the port Number - from 25 to 587 - Check the box - Server requires a secure connection (SSL) - Basic authentication - User name - Put the Email Account (worldwid01@gmail.com) - Password - (for that email) - Ok - Next - Set it to - PUBLIC - Next - Next - Finish - Close
+-- GUI METHOD => Open Management - Right click on Database Mail - Configure Database Mail - Next - Set up Database Mail by performing the following - 1. Create a new mail, 2. Specify profile security, 3. Configure system parameters - Next - Profile Name - SQL - Click ADD to add the account - Account Name - SQL - Email address - dbareport01@gmail.com - Server name - smtp.gmail.com - Change the port Number - from 25 to 587 - Check the box - Server requires a secure connection (SSL) - Basic authentication - User name - Put the Email Account (dbareport01@gmail.com) - Password - (for that email) - Ok - Next - Set it to - PUBLIC - Next - Next - Finish - Close
 
 -- Go to the SQL Server Agent - Right click - Properties - Alert System - Enable mail profile - Mail profile - SQL - Ok - Now w need to RESTART SQL SERVER AGENT - Right click on SQL Server Agent - Restart - Yes - Verify - Go to your email - Go to Management - Right click on - Database Mail - Send Test E-Mail.. - To - Type in your email - Click Send Test E-mail - Ok - This is a test e-mail sent from Database Mail on ...
 
--- OPERATORS - Lets create an OPERATOR - Open Management - Right click NEW OPERATOR - Name(Make yourself) - Hammed - E-mail name - worldwid01@gmail.com - Enable - Notifications - Alerts (Enable) - Ok 
+-- OPERATORS - Lets create an OPERATOR - Open Management - Right click NEW OPERATOR - Name(Make yourself) - Hammed - E-mail name - dbareport01@gmail.com - Enable - Notifications - Alerts (Enable) - Ok 
 
 -- Open OPERATORS - You will see your Operator Name there - Doublr click it - General - Change from Alerts to Jobs(Select Jobs) - Ok
 
@@ -2826,7 +2838,7 @@ EXEC msdb.dbo.sysmail_start_sp
 
 -- SCRIPT TO SEND EMAIL FROM DATABASE MAIL FOR TESTING
 Execute msdb.dbo.sp_send_dbmail
-@recipients = 'worldwid01@gmail.com',
+@recipients = 'dbareport01@gmail.com',
 @body = 'TestSQL2019',
 @SUBJECT = 'TestSQL2019'
 
@@ -2905,8 +2917,6 @@ RECONFIGURE
 GO
 
 */
-
-
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- 1. ENABLE DATABASE MAIL FOR THIS INSTANCE
@@ -3002,7 +3012,10 @@ GO
 RECONFIGURE
 GO
 
+-- GMAIL DETAILS
+-- Password: nnprjiufudcbojsd
 
+-- Gmail Account: dbareport01@gmail.com
 -- Gmail SMTP Server 
 -- Server Name : smtp.gmail.com
 -- Port: 587
@@ -3442,11 +3455,33 @@ Go
 
 --CREATE A SQL LOGIN NOT USING WINDOWS USER
 
+-- CREATING LOGIN USER, BY PASSING ACTIVE DIRECTORY AND MAKE SURE YOU SET UP MIXED MODE (SQL SERVER AND WINDOWS AUTHENTICATION MODE)
+-- GUI - SQL01 (SQL Server) - Security - Login - GENERAL - New Login: - Login name: Mary - Select: SQL SERVER AUTHENTICATION - Password: 1234@Admin - Confirm password: 1234@Admin - User must change password at next login: Check it - Server Roles: Public - User Mapping: check the database you want the user to have access - Database Role: Datareader, db_owner, public - Securable: All good - Status: Permission to connect database engine: Grant - Login: Enabled - Ok
+
+-- Connect - Change it SQL Server Authentication - Login: Mary - Password - Password must be change next login: New password - 11234@Admin - Confirm: 11234@Admin - Ok
+
+-- TO DROP THE USER 
+   -- First drop(delete) the user from the databases first and then from the Security - Login
+
+-- IN CASE THERE IS ERROR WHEN YOU TRYING TO DELETE(DROP) THE USER LOGIN FROM THE SECURITY
+   -- Open: New Query - EXECUTE: SP_WHO - To see all who is active and then kill the right 
+   -- To kill: Kill 65(put the exact login spid) then Execute
+KILL <SPID>;
+
+sp_who --< To see all who is active
+
+Kill 65 --< To kill the session
+
+
+
+
+-- SCRIPT TO CREATE A SQL LOGIN NOT USING WINDOWS USER
+-----------------------------------------------------------------------------------------------------
 USE [master]
 GO
 
-CREATE LOGIN [Mary] 
-WITH PASSWORD=N'1234@Admin' --<< password does not meet complexity (use upper 'P')
+CREATE LOGIN [Robert] 
+WITH PASSWORD=N'11234@Admin' --<< password does not meet complexity (use upper 'P') --1234@Admin
 MUST_CHANGE, DEFAULT_DATABASE=[master], 
 CHECK_EXPIRATION=ON, 
 CHECK_POLICY=ON
@@ -3455,7 +3490,7 @@ GO
 USE [AdventureWorks2019]
 GO
 
-CREATE USER [Mary] FOR LOGIN [Mary] --<< Create a SQL Login
+CREATE USER [Robert] FOR LOGIN [Robert] --<< Create a SQL Login
 GO
 
 USE [AdventureWorks2019]
@@ -3467,4 +3502,724 @@ GO
 
 
 
--- GUI - SQL01 (SQL Server) - Security - Login - New Login: - Login name: Mary - 
+
+-- 54. UNDERSTANDING SQL SERVER ROLES
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-- CREATING SQL ROLES
+   -- What are SQL Roles – Predefined collection of objects and permissions?
+
+   -- Roles allow the dba to manage permissions more efficiently
+
+   -- We first create roles and then assign permissions to roles, and then add logins to the roles
+
+-- SQL SERVER SUPPORTS FOUR TYPES OF ROLES
+   -- •	Fixed database roles - These roles already have pre – defined set of permissions
+   -- •	User-defined database roles - These roles have their set of permissions defined by the sa
+   -- •	Fixed server roles – These roles already have pre – defined set of permissions
+   -- •	User-defined server roles – These roles have their set of permissions defined by the sa
+
+-- The following shows the fixed database-level roles and their capabilities. These roles exist in all databases.
+
+
+-- DATABASE-LEVEL ROLE 
+db_owner	
+-- Members of the db_owner fixed database role can perform all configuration and maintenance activities on the database, and can also drop the database.
+
+db_securityadmin	
+-- Members of the db_securityadmin fixed database role can modify role membership and manage permissions (be careful)
+
+db_accessadmin	
+-- Members of the db_accessadmin fixed database role can add or remove access to the database for Windows logins, Windows groups, and SQL Server logins.
+
+db_backupoperator	
+-- Members of the db_backupoperator fixed database role can back up the database.
+
+db_ddladmin	
+-- Members of the db_ddladmin fixed database role can run any Data Definition Language (DDL) command in a database.
+
+db_datawriter	
+-- Members of the db_datawriter fixed database role can add, delete, or change data in all user tables.
+
+db_datareader	
+-- Members of the db_datareader fixed database role can read all data from all user tables.
+
+db_denydatawriter	
+-- Members of the db_denydatawriter fixed database role cannot add, modify, or delete any data in the user tables within a database.
+
+db_denydatareader	
+-- Members of the db_denydatareader fixed database role cannot read any data in the user tables within a database.
+
+
+-- DEMO
+   -- Create a Role that access only two HR tables.
+   -- Create database role: HR Tables
+   -- Add Securable: Department table, Employee table 
+   -- Grant Select on both tables
+   -- Add both Peter and Robert logins to the database role HR Table
+
+
+
+-- SQL SERVER ROLES
+   -- The Server Roles page lists all possible roles that can be assigned to the new login. 
+
+bulkadmin
+-- Members of the bulkadmin fixed server role can run the BULK INSERT statement.
+
+dbcreator
+-- Members of the dbcreator fixed server role can create, alter, drop, and restore any database.
+
+diskadmin
+-- Members of the diskadmin fixed server role can manage disk files.
+
+processadmin
+-- Members of the processadmin fixed server role can terminate processes running in an instance of the Database Engine.
+
+public
+-- All SQL Server users, groups, and roles belong to the public fixed server role by default.
+
+securityadmin
+-- Members of the securityadmin fixed server role manage logins and their properties. They can GRANT, DENY, and REVOKE server-level permissions. They can also GRANT, DENY, and REVOKE database-level permissions. Additionally, they can reset passwords for SQL Server logins.
+
+serveradmin
+-- Members of the serveradmin fixed server role can change server-wide configuration options and shut down the server.
+
+setupadmin
+-- Members of the setupadmin fixed server role can add and remove linked servers, and they can execute some system stored procedures.
+
+Sysadmin  
+-- (‘God’ like powers – can do anything and everything)
+-- Members of the sysadmin fixed server role can perform any activity in the Database Engine.
+
+
+-- GUI -- GIVING ROLES TO USER
+-- Since we already have PETER and Robert as SQL SERVER AUTHENTICATION and has access to Adventuresworks2019 but no access to tables
+-- Now lets proceed to give access to them to view a particular table
+
+
+-- SQL01 - Databases: Adventuresworks2019 - Security - Roles: Right click on the roles - New Database Role - General: DB_HR Tables - Securables: Search - Select: All objects belonging to the schema - Schema name: HumanResources - Ok 
+
+-- Lets create ROLES that is if you belong to this roles you can only view the table HumanResources Department and HumanResources Employee table with Select statement
+-- Now Click - Department - Permissions for HumanResources Department: SELECT: Grant
+-- Now Click - Employee - Permissions for HumanResources Employee: SELECT: Grant
+-- Ok
+
+-- LETS ADDS USERS
+   -- Double Click on the - DB_HR Tables - Click Add: Browse...: Select: Peter and Robert - Ok - Ok - Ok
+   -- Now Peter and Robert has access to view the table just to view no access to delete
+
+
+
+
+
+
+-- 55. MANAGING SQL SERVER ROLES VIA TSQL
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+/*
+PLAN THE ROLE FIRST.
+Set up a name with naming convention (udr_<name of Role>) 
+Review what securables you want to add to the Role
+Determine what permission you want to apply to those securables
+Find out which groups, user, or logins you want to add that role
+*/
+
+-- 1. CREATE A SQL ROLE IN DATABASE
+Use [AdventureWorks2019]
+Go
+
+Create Role [HR Tables]
+Go
+
+-- 2. SELECT THE SECURABLES (TABLES) AND ADD TO SQL ROLE
+   -- THEN GRANT SELECT PERMIS´SIONS TO ROLE
+
+Use [AdventureWorks2019]
+Go
+Grant Select On [HummanResources].[Department]
+To [HR Tables]
+Go
+
+
+Use [AdventureWorks2019]
+Go
+Grant Select On [HummanResources].[Employee]
+To [HR Tables]
+Go
+
+
+-- 3. ADD SQL LOGINS TO THE DATABASE ROLES
+
+Use [AdventureWorks2019]
+Go
+Alter Role [HR Tables]
+Add Member [Peter]
+Go
+
+
+Use [AdventureWorks2019]
+Go
+Alter Role [HR Tables]
+Add Member [Robert]
+Go
+
+
+
+
+
+-- 56. SQL SERVER ROLES DEMONSTRATION
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- CREATING SQL ROLES
+
+-- What are SQL Roles - Predefined collection of objects and permissions?
+-- Roles allows the dba to manage permissions more efficiently
+-- We first create roles and then assign permissions to roles, and then add logins to the roles
+
+-- SQL SERVER SUPPORTS FOUR TYPES OF ROLES
+   -- • Fixed database roles - These roles already have pre-defined set of permissions
+   -- • User-defined database roles - These roles have their set of permissions defined by the sa(system admin)
+   -- • Fixed server roles - These roles already have pre - defined set of permissions
+   -- • User-defined server roles - These roles have their set of permissions defined by the sa 
+
+
+-- THE FOLLOWING SHOWS THE FIXED DATABASE-LEVEL ROLES AND THEIR CAPABILITIES. THESE ROLES EXIST IN ALL DATABASES.
+
+-- DATABASE-LEVEL ROLE
+
+db_owner	
+-- Members of the db_owner fixed database role can perform all configuration and maintenance activities on the database, and can also drop the database.
+
+db_securityadmin	
+-- Members of the db_securityadmin fixed database role can modify role membership and manage permissions (be careful)
+
+db_accessadmin	
+-- Members of the db_accessadmin fixed database role can add or remove access to the database for Windows logins, Windows groups, and SQL Server logins.
+
+db_backupoperator	
+-- Members of the db_backupoperator fixed database role can back up the database.
+
+db_ddladmin	
+-- Members of the db_ddladmin fixed database role can run any Data Definition Language (DDL) command in a database.
+
+db_datawriter	
+-- Members of the db_datawriter fixed database role can add, delete, or change data in all user tables.
+
+db_datareader	
+-- Members of the db_datareader fixed database role can read all data from all user tables.
+
+db_denydatawriter	
+-- Members of the db_denydatawriter fixed database role cannot add, modify, or delete any data in the user tables within a database.
+
+db_denydatareader	
+-- Members of the db_denydatareader fixed database role cannot read any data in the user tables within a database.
+
+
+-- DEMO
+   -- Create a Role that access only two HR tables.
+   -- Create database role: HR Tables
+   -- Add Securable: Department table, Employee table 
+   -- Grant Select on both tables
+   -- Add both Peter and Robert logins to the database role HR Table
+
+
+
+-- SQL SERVER ROLES
+   -- The Server Roles page lists all possible roles that can be assigned to the new login. 
+
+bulkadmin
+-- Members of the bulkadmin fixed server role can run the BULK INSERT statement.
+
+dbcreator
+-- Members of the dbcreator fixed server role can create, alter, drop, and restore any database.
+
+diskadmin
+-- Members of the diskadmin fixed server role can manage disk files.
+
+processadmin
+-- Members of the processadmin fixed server role can terminate processes running in an instance of the Database Engine.
+
+public
+-- All SQL Server users, groups, and roles belong to the public fixed server role by default.
+
+securityadmin
+-- Members of the securityadmin fixed server role manage logins and their properties. They can GRANT, DENY, and REVOKE server-level permissions. They can also GRANT, DENY, and REVOKE database-level permissions. Additionally, they can reset passwords for SQL Server logins.
+
+serveradmin
+-- Members of the serveradmin fixed server role can change server-wide configuration options and shut down the server.
+
+setupadmin
+-- Members of the setupadmin fixed server role can add and remove linked servers, and they can execute some system stored procedures.
+
+Sysadmin  
+-- (‘God’ like powers – can do anything and everything)
+-- Members of the sysadmin fixed server role can perform any activity in the Database Engine.
+
+
+
+-- CREATE SERVER ROLE -- even though w grant them server role they can not still view the table so to view any table w still need to give permission to it
+  -- SQL01 - Security - Server Roles: New Server Role...- General: Server role name: Junior DBA role - Securables: Select Servers: SQL01 - Permissions for SQL01: Create any database: Grant - View any database: Grant - Members: Add - Browse: Select appropriate login(Peter&Robert) - Ok - Ok
+
+  -- Even though w grant them server role they can not still view the table so to view any table w still need to give permission to it
+  -- They can create new database since w give them permission (Test1 and Test2)
+
+-- LETS DELETE THE SERVER ROLE
+   -- SQL01 - Security - Server Roles - Right click on the Role you like to delete eg Junior DBA role - Delete - Ok
+
+-- TO DELETE THE DATABASE CREATED FROM THE SERVER ROLE
+   -- You can only DELETE the Databases Test1 and Test2 from SQL01 not from Peter or Robert because they dont have the permission to delete 
+   -- That is the poweer of sa or sysadmin
+
+
+
+-- SCRIPT TO CREATE A SERVER ROLE
+/*
+CREATE A SERVER ROLE,
+Grant CREATE any database permission to server role
+Grant VIEW any database permission to server role
+Add SQL Logins
+*/
+
+-- 1. CREATE A USER DEFINED SERVER ROLE
+Use [Master]
+Go
+
+Create Server Role [Junior DBA Manage DB]
+Go
+
+-- 2. GRANT TO CREATE DATABASE
+Use [Master]
+Go
+Grant Create Any Database --< Can create databases
+To [Junior DBA Manage DB]
+Go
+
+
+-- 3. GRANT TO CREATE DATABASE
+   -- !!CAN VIEW ANY DATABASE BUT NOT SEE ANY TABLES!! NO PERMISSIONS
+Use [Master]
+Go
+Grant View Any Database --< Can view any database
+To [Junior DBA Manage DB]
+Go
+
+
+
+-- 4. ADD SQL LOGINS TO THE NEW SERVER ROLE
+
+Alter  Server Role [Junior DBA Manage DB]
+Add Member [Peter]
+Go
+
+
+Alter  Server Role [Junior DBA Manage DB]
+Add Member [Peter]
+Go
+
+
+
+
+-- 57. MANAGING SQL SERVER PERMISSIONS
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+-- WHAT ARE GRANT, DENY, AND REVOKE PERMISSIONS
+   
+   -- GRANT – This allows the principal to perform an action
+   -- DENY – This Denies permission to a login (principal)
+   -- REVOKE – These remove the grant or deny permission to the securable
+      
+-- NOTES:
+   -- A deny will override a grant. This means that if a user is denied permission they cannot inherit a grant from another source
+
+
+-- DEMO OF GRANT, DENY, REVOKE PERMISSIONS ON TABLES
+-------------------------------------------------------------------------
+
+-- GRANT Select on table to PETER
+Use [AdventureWorks2019]
+Go
+GRANT SELECT ON [HumanResources].[Department] TO [PETER]
+Go
+
+-- GRANT Select on table to ROBERT
+Use [AdventureWorks2019]
+Go
+GRANT SELECT ON [HumanResources].[Department] TO [ROBERT]
+Go
+
+
+-- GRANT SELECT ON TABLE #2 TO PETER
+Use [AdventureWorks2019]
+Go
+GRANT SELECT ON [HumanResources].[Employee] TO  [PETER], [ROBERT] --< Can give permission to multiple logins
+Go
+
+
+-- REVOKE PETER AND ROBERT FROM TABLE EMPLOYEE
+Use [AdventureWorks2019]
+Go
+REVOKE SELECT ON [HumanResources].[Employee] TO [PETER], [ROBERT] AS [dbo]
+Go
+
+
+-- REVOKE PETER AND ROBERT FROM TABLE DEPARTMENT
+Use [AdventureWorks2019]
+Go
+REVOKE SELECT ON [HumanResources].[Department] TO [PETER], [ROBERT] AS [dbo]
+Go
+
+
+
+-- ADD PETER TO ROLE db_datareader, thus he can view ALL tables
+Use [AdventureWorks2019]
+Go
+ALTER ROLE [db_datareader] ADD MEMBER [PETER]
+Go
+
+
+-- DENY SELECT ON Product Table
+   -- He will NOT be able to view the data for table Product!!! (even though he is part of Role datreader)
+   -- Any DENY permission SUPERSEDES other collective permissions 
+
+
+Use [AdventureWorks2019]
+Go
+DENY SELECT ON [Production].[Product] To [Peter]
+Go
+
+
+-- REVOKE THE DENY ON PRODUCT TABLE (He can not view Product table again)
+Use [AdventureWorks2019]
+Go
+REVOKE SELECT ON [Production].[Product] To [Peter]
+Go
+
+
+-- DROP MEMBER FROM THE ROLE db_datareader
+Use [AdventureWorks2019]
+Go
+ALTER ROLE [db_datareader] DROP MEMBER [Peter]
+Go
+
+
+-- DENY SERVER ROLE 
+Use Master
+Go
+
+-- CREATING SERVER ROLE 
+CREATE SERVER ROLE [ServerRole-20231026-180800]
+Go
+
+-- ADD PETER AND ROBERT TO THE SERVER ROLE
+ALTER SERVER ROLE [ServerRole-20231026-180800] ADD MEMBER [Peter]
+Go
+
+ALTER SERVER ROLE [ServerRole-20231026-180800] ADD MEMBER [Robert]
+Go
+
+
+Use Master
+Go
+
+DENY VIEW ANY DATABASE TO [ServerRole-20231026-180800]
+Go
+
+
+
+-- REVOKE THE CONNECT FOR PETER (He can not CONNECT to the Database)
+Use [AdventureWorks2019]
+Go
+DENY CONNECT TO [Peter], [Robert]
+Go
+
+-- GRANT CONNECT TO THE DATABASE AGAIN
+Use [AdventureWorks2019]
+Go
+GRANT CONNECT TO [Peter], [Robert]
+Go
+
+
+-- DROP Peter and Robert To VIEW THE DATABASE AGAIN
+ALTER SERVER ROLE [ServerRole-20231026-180800]
+DROP MEMBER [Peter]
+Go
+
+ALTER SERVER ROLE [ServerRole-20231026-180800]
+DROP MEMBER [Robert]
+Go
+
+
+
+
+
+-- SCRIPT VIEWING THE PERMISSIONS / SCRIPT TO FIND ALL PERMISSION
+
+SELECT  
+    [UserName] = CASE princ.[type] 
+                    WHEN 'S' THEN princ.[name]
+                    WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI
+                 END,
+    [UserType] = CASE princ.[type]
+                    WHEN 'S' THEN 'SQL User'
+                    WHEN 'U' THEN 'Windows User'
+                 END,  
+    [DatabaseUserName] = princ.[name],       
+    [Role] = null,      
+    [PermissionType] = perm.[permission_name],       
+    [PermissionState] = perm.[state_desc],       
+    [ObjectType] = obj.type_desc,--perm.[class_desc],       
+    [ObjectName] = OBJECT_NAME(perm.major_id),
+    [ColumnName] = col.[name]
+FROM    
+    --database user
+    sys.database_principals princ  
+LEFT JOIN
+    --Login accounts
+    sys.login_token ulogin on princ.[sid] = ulogin.[sid]
+LEFT JOIN        
+    --Permissions
+    sys.database_permissions perm ON perm.[grantee_principal_id] = princ.[principal_id]
+LEFT JOIN
+    --Table columns
+    sys.columns col ON col.[object_id] = perm.major_id 
+                    AND col.[column_id] = perm.[minor_id]
+LEFT JOIN
+    sys.objects obj ON perm.[major_id] = obj.[object_id]
+WHERE 
+    princ.[type] in ('S','U')
+UNION
+--List all access provisioned to a sql user or windows user/group through a database or application role
+SELECT  
+    [UserName] = CASE memberprinc.[type] 
+                    WHEN 'S' THEN memberprinc.[name]
+                    WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI
+                 END,
+    [UserType] = CASE memberprinc.[type]
+                    WHEN 'S' THEN 'SQL User'
+                    WHEN 'U' THEN 'Windows User'
+                 END, 
+    [DatabaseUserName] = memberprinc.[name],   
+    [Role] = roleprinc.[name],      
+    [PermissionType] = perm.[permission_name],       
+    [PermissionState] = perm.[state_desc],       
+    [ObjectType] = obj.type_desc,--perm.[class_desc],   
+    [ObjectName] = OBJECT_NAME(perm.major_id),
+    [ColumnName] = col.[name]
+FROM    
+    --Role/member associations
+    sys.database_role_members members
+JOIN
+    --Roles
+    sys.database_principals roleprinc ON roleprinc.[principal_id] = members.[role_principal_id]
+JOIN
+    --Role members (database users)
+    sys.database_principals memberprinc ON memberprinc.[principal_id] = members.[member_principal_id]
+LEFT JOIN
+    --Login accounts
+    sys.login_token ulogin on memberprinc.[sid] = ulogin.[sid]
+LEFT JOIN        
+    --PERMISSIONS
+    sys.database_permissions perm ON perm.[grantee_principal_id] = roleprinc.[principal_id]
+LEFT JOIN
+    --Table columns
+    sys.columns col on col.[object_id] = perm.major_id 
+                    AND col.[column_id] = perm.[minor_id]
+LEFT JOIN
+    sys.objects obj ON perm.[major_id] = obj.[object_id]
+UNION
+--List all access provisioned to the public role, which everyone gets by default
+SELECT  
+    [UserName] = '{All Users}',
+    [UserType] = '{All Users}', 
+    [DatabaseUserName] = '{All Users}',       
+    [Role] = roleprinc.[name],      
+    [PermissionType] = perm.[permission_name],       
+    [PermissionState] = perm.[state_desc],       
+    [ObjectType] = obj.type_desc,--perm.[class_desc],  
+    [ObjectName] = OBJECT_NAME(perm.major_id),
+    [ColumnName] = col.[name]
+FROM    
+    --Roles
+    sys.database_principals roleprinc
+LEFT JOIN        
+    --Role permissions
+    sys.database_permissions perm ON perm.[grantee_principal_id] = roleprinc.[principal_id]
+LEFT JOIN
+    --Table columns
+    sys.columns col on col.[object_id] = perm.major_id 
+                    AND col.[column_id] = perm.[minor_id]                   
+JOIN 
+    --All objects   
+    sys.objects obj ON obj.[object_id] = perm.[major_id]
+WHERE
+    --Only roles
+    roleprinc.[type] = 'R' AND
+    --Only public role
+    roleprinc.[name] = 'public' AND
+    --Only objects of ours, not the MS objects
+    obj.is_ms_shipped = 0
+ORDER BY
+    princ.[Name],
+    OBJECT_NAME(perm.major_id),
+    col.[name],
+    perm.[permission_name],
+    perm.[state_desc],
+    obj.type_desc--perm.[class_desc] 
+
+
+
+
+-- 58. BEST PRACTICE TO SECURE THE SQL SERVER(S)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- Start with the physical server room where the Servers are kept
+-- Insure that only selected IT staff has access (Network Admins, System Admins, and SQL DBAs)
+-- Keep the backups not only on site, but keep a copy of backups off site
+-- Install all service packs and critical fixes for Windows Operating System and SQL Server Service Packs
+
+-- (Test on test server first before applying to production)
+-- Disable the default admin the BUILTIN\Administrators group from the SQL Server (demo)
+-- Use Windows Authentication mode as opposed to mixed Mode (demo)
+-- Use service accounts for applications and create a different service account for each SQL Service
+-- Create service accounts with the least privileges
+-- Document all user permission with the script and keep track of which user has what permissions (demo)
+-- Disable all features via the SQL Server Configuration Manager that are not in use (demo)
+-- Install only required components when installing SQL Server (don’t install ssrs, ssis, ssas)
+-- Disable the SA account and rename it (demo)
+-- Remove the BUILTIN\Administrators Windows Group from a SQL (demo)
+-- Use SQL Server Roles to limit logins accessing database (as shown in previous videos)
+-- Use permission to give only that is needed to the SQL Login or User
+-- Hide all databases from logins (demo)
+-- Be proactive in securing the SQL Server and databases
+
+
+-- INFO ABOUT BUILTIN\ADMINISTRATORS
+-----------------------------------------------------------------------------------------------------
+EXEC master..xp_logininfo 
+@acctname = 'Builtin\Administrators',
+@option = 'members' 
+
+-- DROP THE BUILTIN\ADMINISTRATORS
+USE MASTER
+IF EXISTS (SELECT * FROM sys.server_principals
+WHERE name = N'BUILTIN\Administrators')
+DROP LOGIN [BUILTIN\Administrators]
+GO
+
+-- VERFIY THE BUILTIN\ADMINISTRATORS GROUP HAS BEEN DROPPED
+EXEC master..xp_logininfo 
+  @acctname = 'Builtin\Administrators',
+  @option = 'members'     
+
+
+-- ADDBUILTIN\ADMINISTRATORS 
+EXEC sp_grantlogin 'BUILTIN\Administrators'
+EXEC sp_addsrvrolemember 'BUILTIN\Administrators','sysadmin'
+
+
+EXEC master..xp_logininfo 
+  @acctname = 'Builtin\Administrators',
+  @option = 'members' 
+
+
+-- ENABLE WINDOWS AUTHENTICATION (REQUIRES A RESTART OF SERVICES)
+USE [master]
+GO
+EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', 
+N'Software\Microsoft\MSSQLServer\MSSQLServer', N'LoginMode', 
+REG_DWORD, 1
+GO
+
+-- ENABLE MIXED MODE AUTHENTICATION (REQUIRES A RESTART OF SERVICES)
+USE [master]
+GO
+EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', 
+N'Software\Microsoft\MSSQLServer\MSSQLServer', 
+N'LoginMode', REG_DWORD, 2
+GO
+
+
+-- GET INFO ON ALL SQL LOGINS AND WINDOWS USERS
+SELECT name AS Login_Name,TYPE, type_desc AS Account_Type
+FROM sys.server_principals 
+WHERE TYPE IN ('U', 'S', 'G')
+ORDER BY name, type_desc
+
+
+-- VIEW ALL THE USERS THAT HAVE ACCESS TO SQL SERVER
+SELECT name, type_desc, is_disabled
+From sys.server_principals
+
+
+-- SCRIPT TO DISABLE sa Account
+-- MAKE SURE YOU HAVE A LOGIN THAT IS PART OF THE SYSADMIN ROLE BEFORE DOING THIS!!!!
+USE [master]
+GO
+ALTER LOGIN [sa] WITH PASSWORD=N'1234@Admin'
+GO
+ALTER LOGIN [sa] DISABLE
+GO
+
+
+-- SCRIPT TO ENABLE sa Account
+USE [master]
+GO
+ALTER LOGIN [sa] WITH PASSWORD=N'1234@Admin'
+GO
+ALTER LOGIN [sa] ENABLE
+GO
+
+
+-- HIDE ALL DATABASES  
+USE MASTER
+GO
+DENY VIEW ANY DATABASE TO PUBLIC
+GO
+
+
+-- UNHIDE ALL DATABASES
+USE MASTER
+GO
+GRANT VIEW ANY DATABASE TO PUBLIC;
+GO
+
+
+    
+-- SQL SERVER ADMINISTRATION PART 2 OF 3
+
+-- TABLE OF CONTENTS
+   --  Create Database Diagrams
+   --  What is database snapshot
+   --  What are contained databases
+   --  Repairing DBCC CheckDB
+   --  What are indexes
+   --  Types of Indexes
+   --  When to use indexes or not
+   --  Querying indexes for fragmentation
+   --  Resolving indexes with rebuild or reorganize option
+   --  Using database tuning advisor for tuning indexes
+   --  Understanding SQL database statistics
+   --  Introduction to using SQL profiler
+   --  Using SQL profiler to access longest running queries
+   --  Using SQL profiler to analysis security
+   --  Saving SQL profiler data to tables and files for analysis
+   --  Viewing SQL Server activity via activity monitor
+   --  Utilizing performance monitor to collect data
+   --  Using data collector to view collect and store data
+   --  Analyzing SQL Server Logs and SQL Agents Logs
+   --  Cover top set Data Management Views (DMV)
+   --  What is blocking and locking
+   --  Using SQL profiler for reviewing blocking and locking
+   --  Auditing the SQL Server for breach
+   --  Migrating data using import wizard
+   --  Using Bulk Copy Process utility (BCP) to move dat fast
+   --  Example of how to set up policy based management
+   --  Setting up linked servers for distributed queries
+   --  Partitioning large database for ease of management
+   --  How to upgrade a SQL Server
+   --  Side by side or in place SQL Server upgrade
+   --  AND MUCH MORE!!!
+
+-- 1234@Admin
